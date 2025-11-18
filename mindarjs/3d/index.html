@@ -1,19 +1,100 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <title>WebAR Coloring with OpenCV.js: 3D Object and Animation </title>
+    <title>WebAR Coloring Book with MindAR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://docs.opencv.org/4.8.0/opencv.js" async></script>
+    <style>
+      #capture-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        padding: 15px 30px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      }
+      #capture-btn:hover {
+        background: #45a049;
+      }
+      #capture-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+      #status {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        padding: 10px 20px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        border-radius: 15px;
+        font-size: 14px;
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <a-scene mindar-image="imageTargetSrc: target_3d.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 10; far: 10000; objects: .clickable"></a-camera>
+    <div id="status">Ready to capture</div>
+    <button id="capture-btn" disabled>Capture Coloring</button>
+    <button id="reset-btn" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; background: #FF5722; color: white; border: none; border-radius: 15px; font-size: 14px; cursor: pointer;">Reset Texture</button>
+    
+    <a-scene 
+      mindar-image="imageTargetSrc: targets.mind;" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false">
+      
+      <a-camera 
+        position="0 0 0" 
+        look-controls="enabled: false" 
+        cursor="fuse: false; rayOrigin: mouse;" 
+        raycaster="near: 10; far: 10000; objects: .clickable">
+      </a-camera>
+             
+      
+      <!-- Mermaid -->
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-entity id="example-3D" gltf-model="raccoon.glb" animation-mixer="clip: *;" class="clickable" position="0 0 0" rotation="0 0 0" scale="0.1 0.1 0.1"></a-entity>
+        <a-entity 
+          id="mermaid-model"
+          gltf-model="mermaid3d.glb" 
+          scale="0.8 0.8 0.8"
+          data-target-index="0">
+        </a-entity>
       </a-entity>
+
+      <!-- Turtle -->
+      <a-entity mindar-image-target="targetIndex: 1">
+        <a-entity 
+          id="turtle-model"
+          gltf-model="turtle3d.glb" 
+          scale="0.8 0.8 0.8"
+          data-target-index="1">
+        </a-entity>
+      </a-entity> 
+
+      <!-- Goku -->
+      <a-entity mindar-image-target="targetIndex: 2">
+        <a-entity 
+          id="goku-model"
+          gltf-model="goku3d.glb" 
+          scale="0.8 0.8 0.8"
+          data-target-index="2">
+        </a-entity>
+      </a-entity> 
+
     </a-scene>    
-    <script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
-  <script src="script.js"></script>
+    
+    <script src="script.js"></script>
   </body>
 </html>
