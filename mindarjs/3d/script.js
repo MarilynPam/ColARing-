@@ -342,19 +342,23 @@ function processColoringPage() {
       arAnalytics.trackDetectionFailure();
       showStatus('Could not detect coloring page. Make sure it has clear edges and good lighting.');
       
-      // Show debug images
-      scaleAndShowImage(img, 640, "screenshotCanvas");
-      scaleAndShowImage(edgeDetected, 640, "resultCanvas");
-      screenshotCanvas.style.display = 'block';
-      resultCanvas.style.display = 'block';
-      screenshotCanvas.style.position = 'fixed';
-      screenshotCanvas.style.top = '10px';
-      screenshotCanvas.style.left = '10px';
-      screenshotCanvas.style.zIndex = '2000';
-      resultCanvas.style.position = 'fixed';
-      resultCanvas.style.top = '10px';
-      resultCanvas.style.right = '10px';
-      resultCanvas.style.zIndex = '2000';
+      // Optional: Show debug images (set to false to hide them)
+      const SHOW_DEBUG_IMAGES = false;
+      
+      if (SHOW_DEBUG_IMAGES) {
+        scaleAndShowImage(img, 640, "screenshotCanvas");
+        scaleAndShowImage(edgeDetected, 640, "resultCanvas");
+        screenshotCanvas.style.display = 'block';
+        resultCanvas.style.display = 'block';
+        screenshotCanvas.style.position = 'fixed';
+        screenshotCanvas.style.top = '10px';
+        screenshotCanvas.style.left = '10px';
+        screenshotCanvas.style.zIndex = '2000';
+        resultCanvas.style.position = 'fixed';
+        resultCanvas.style.top = '10px';
+        resultCanvas.style.right = '10px';
+        resultCanvas.style.zIndex = '2000';
+      }
       
       return;
     }
