@@ -1,10 +1,35 @@
 # WebAR Coloring
 <img src="img/screenshot.gif" title="screen capture" alt="screen capture" width="250" style="text-align: center">
 
+### How to Run ColARing prototype
+1. In a terminal input
+```
+git clone https://github.com/MarilynPam/ColARing-.git
+```
+
+2. Go to the directory
+```
+cd ColARing-
+```
+
+3. Run a python server
+```
+python -m http.server 8000
+```
+
+4. In your browser, navigate to localhost:8000
+
+5. Click mindarjs/ then 3d/
+
+6. Allow Camera Access
+
+7. Display your coloring page to see 3d model and capture coloring!
+
 ### **Description / Rationale**
 This repository contains the algorithm and various implementations of web-based augmented reality coloring. Creation of this repository was dictated by the fact that at present there are no similar works, which are open-source and affordable (all existing web AR coloring examples are not free).
 
-### **Instructions**
+
+### **Other Instructions**
 The repository contains the implementations/demos for: 
 * MindAR.js (see mindarjs folder)
 * AR.js (see arjs folder)
@@ -89,11 +114,3 @@ The repository contains the following implementations/demos:
     - <a href="https://webarcoloring-simplear.glitch.me/">Web AR coloring of a 3D model</a> and <a href="img/target_3d.jpg">image target 1</a> or <a href="img/target_3d2.jpg">image target 2</a>.
 * A-Frame component:
     - <a href="https://webarcoloring-component.glitch.me/">Example implementation</a> and <a href="img/target_3d.jpg">image target 1</a> or <a href="img/target_3d2.jpg">image target 2</a>.
-
- 
-## 🪄 Acknowledgments
-
-This project is based on the open-source repository **[WebAR-Coloring (https://github.com/akbartus/WebAR-Coloring)** created by [akbartus](https://github.com/akbartus).  
-We have adapted the source code for educational and research purposes as part of our Human–Computer Interaction (HCI) course project at Florida Polytechnic University.  
-The original project is licensed under the MIT License, and its LICENSE file is included in this repository.
-
