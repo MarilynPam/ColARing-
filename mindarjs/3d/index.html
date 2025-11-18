@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://docs.opencv.org/4.8.0/opencv.js" async></script>
     <style>
+      /* Existing buttons */
       #capture-btn {
         position: fixed;
         bottom: 20px;
@@ -43,13 +44,77 @@
         font-size: 14px;
         display: none;
       }
+
+      /* Study panel styling */
+      #study-panel {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1100;
+        background: rgba(0, 0, 0, 0.7);
+        color: #ffffff;
+        padding: 8px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        font-size: 12px;
+        max-width: 220px;
+      }
+      #study-panel input,
+      #study-panel select {
+        font-size: 12px;
+      }
+      #study-panel button {
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      #study-status-text {
+        margin-top: 4px;
+      }
+      #study-trial-count {
+        margin-top: 2px;
+        font-size: 11px;
+        opacity: 0.8;
+      }
     </style>
   </head>
   <body>
+    <!-- Existing status + buttons -->
     <div id="status">Ready to capture</div>
     <button id="capture-btn" disabled>Capture Coloring</button>
     <button id="reset-btn" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; background: #FF5722; color: white; border: none; border-radius: 15px; font-size: 14px; cursor: pointer;">Reset Texture</button>
     <button id="export-analytics" style="position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 15px; font-size: 14px; cursor: pointer;">Export Analytics</button>
+
+    <!-- NEW: Study panel for experimental data -->
+    <div id="study-panel">
+      <div>
+        Participant:
+        <input id="participantId" type="text" value="P1" style="width:60px;">
+      </div>
+      <div style="margin-top:4px;">
+        Lighting:
+        <select id="lightingCondition">
+          <option value="bright">Bright</option>
+          <option value="dim">Dim</option>
+        </select>
+      </div>
+      <div style="margin-top:4px;">
+        AR Experience:
+        <select id="arExperience">
+          <option value="low">Low</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap;">
+        <button id="study-start-btn">Start</button>
+        <button id="study-error-btn" disabled>Error</button>
+        <button id="study-end-btn" disabled>End</button>
+      </div>
+      <div id="study-status-text">Idle</div>
+      <div id="study-trial-count">Trials saved: 0</div>
+      <button id="export-study-csv" style="margin-top:4px; width:100%;">Export Study CSV</button>
+    </div>
+
+    <!-- AR Scene -->
     <a-scene 
       mindar-image="imageTargetSrc: targets.mind;" 
       vr-mode-ui="enabled: false" 
@@ -62,7 +127,6 @@
         raycaster="near: 10; far: 10000; objects: .clickable">
       </a-camera>
              
-      
       <!-- Mermaid -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-entity 
@@ -94,7 +158,109 @@
       </a-entity> 
 
     </a-scene>    
+
+    <!-- Existing scripts -->
     <script src="analytics.js"></script>
     <script src="script.js"></script>
+
+    <!-- NEW: Study logging script -->
+    <script>
+      (function () {
+        let studyStartTime = null;
+        let studyErrorCount = 0;
+        let studyTrials = [];
+
+        const participantInput = document.getElementById('participantId');
+        const lightingSelect = document.getElementById('lightingCondition');
+        const experienceSelect = document.getElementById('arExperience');
+
+        const startBtn = document.getElementById('study-start-btn');
+        const errorBtn = document.getElementById('study-error-btn');
+        const endBtn = document.getElementById('study-end-btn');
+        const statusText = document.getElementById('study-status-text');
+        const trialCountText = document.getElementById('study-trial-count');
+        const exportStudyBtn = document.getElementById('export-study-csv');
+
+        function updateTrialCount() {
+          trialCountText.textContent = 'Trials saved: ' + studyTrials.length;
+        }
+
+        startBtn.addEventListener('click', () => {
+          studyStartTime = performance.now();
+          studyErrorCount = 0;
+          startBtn.disabled = true;
+          endBtn.disabled = false;
+          errorBtn.disabled = false;
+          statusText.textContent = 'Task running...';
+        });
+
+        errorBtn.addEventListener('click', () => {
+          if (studyStartTime !== null) {
+            studyErrorCount += 1;
+            statusText.textContent = 'Task running... Errors: ' + studyErrorCount;
+          }
+        });
+
+        endBtn.addEventListener('click', () => {
+          if (studyStartTime === null) return;
+
+          const endTime = performance.now();
+          const durationSeconds = ((endTime - studyStartTime) / 1000).toFixed(2);
+
+          const trial = {
+            participantId: participantInput.value || 'P?',
+            lightingCondition: lightingSelect.value,
+            arExperienceLevel: experienceSelect.value,
+            durationSeconds: durationSeconds,
+            errorCount: studyErrorCount
+          };
+
+          studyTrials.push(trial);
+          console.log('STUDY TRIAL SAVED', trial);
+
+          // Reset for next trial
+          studyStartTime = null;
+          startBtn.disabled = false;
+          endBtn.disabled = true;
+          errorBtn.disabled = true;
+          statusText.textContent = 'Idle';
+          updateTrialCount();
+        });
+
+        // Export Study CSV
+        exportStudyBtn.addEventListener('click', () => {
+          if (studyTrials.length === 0) {
+            alert('No study trials to export yet.');
+            return;
+          }
+
+          let csv = 'participantId,lightingCondition,arExperienceLevel,durationSeconds,errorCount\n';
+          csv += studyTrials.map(t =>
+            [
+              t.participantId,
+              t.lightingCondition,
+              t.arExperienceLevel,
+              t.durationSeconds,
+              t.errorCount
+            ].join(',')
+          ).join('\n');
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'study_data.csv';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        });
+
+        // Initial state
+        endBtn.disabled = true;
+        errorBtn.disabled = true;
+        updateTrialCount();
+      })();
+    </script>
   </body>
 </html>
