@@ -50,6 +50,21 @@ function init() {
   isInitialized = true;
   setupTargetListeners();
   setupCaptureButton();
+  setupAnalyticsExport();
+}
+
+function setupAnalyticsExport() {
+  const exportBtn = document.getElementById('export-analytics');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      if (window.arAnalytics) {
+        arAnalytics.exportCSV();
+        arAnalytics.printSummary();
+      } else {
+        console.error('Analytics not initialized');
+      }
+    });
+  }
 }
 
 // Start initialization - handle multiple scenarios
@@ -115,12 +130,15 @@ function setupTargetListeners() {
       });
     }
     
+    // Functionality
+
     if (turtleEntity) {
       const turtleTarget = turtleEntity.parentElement;
       console.log('Turtle target element:', turtleTarget);
       
       turtleTarget.addEventListener('targetFound', () => {
         console.log('Turtle target found!');
+        arAnalytics.trackTargetFound('turtle', 1);
         currentModel = turtleEntity;
         currentTargetIndex = 1;
         captureBtn.disabled = false;
@@ -131,6 +149,7 @@ function setupTargetListeners() {
       
       turtleTarget.addEventListener('targetLost', () => {
         console.log('Turtle target lost');
+        arAnalytics.trackTargetLost('turtle', 1); 
         if (currentTargetIndex === 1) {
           currentModel = null;
           currentTargetIndex = null;
@@ -149,6 +168,7 @@ function setupTargetListeners() {
       
       gokuTarget.addEventListener('targetFound', () => {
         console.log('Goku target found!');
+        arAnalytics.trackTargetFound('goku', 2);
         currentModel = gokuEntity;
         currentTargetIndex = 2;
         captureBtn.disabled = false;
@@ -159,6 +179,7 @@ function setupTargetListeners() {
       
       gokuTarget.addEventListener('targetLost', () => {
         console.log('Goku target lost');
+        arAnalytics.trackTargetLost('goku', 2); 
         if (currentTargetIndex === 2) {
           currentModel = null;
           currentTargetIndex = null;
@@ -178,6 +199,7 @@ function setupTargetListeners() {
       
       mermaidTarget.addEventListener('targetFound', () => {
         console.log('Mermaid target found!');
+        arAnalytics.trackTargetFound('mermaid', 0);
         currentModel = mermaidEntity;
         currentTargetIndex = 0;
         captureBtn.disabled = false;
@@ -188,6 +210,7 @@ function setupTargetListeners() {
       
       mermaidTarget.addEventListener('targetLost', () => {
         console.log('Mermaid target lost');
+        arAnalytics.trackTargetLost('mermaid', 0); 
         if (currentTargetIndex === 0) {
           currentModel = null;
           currentTargetIndex = null;
@@ -220,6 +243,7 @@ function setupCaptureButton() {
     resetBtn.addEventListener('click', () => {
       if (currentModel) {
         resetModelTexture(currentModel);
+        arAnalytics.trackReset();
         showStatus('Texture reset to original');
       } else {
         showStatus('Please point at a target first');
@@ -315,6 +339,7 @@ function processColoringPage() {
     let target = getApprox(contours, width, height);
     if (target) mats.push(target);
     if (!target) {
+      arAnalytics.trackDetectionFailure();
       showStatus('Could not detect coloring page. Make sure it has clear edges and good lighting.');
       
       // Show debug images
@@ -356,11 +381,12 @@ function processColoringPage() {
     
     // Apply texture to 3D model
     applyTextureToModel(currentModel, textureImage);
-    
+    arAnalytics.trackCapture(true);
     showStatus('Coloring applied successfully!');
     
   } catch (error) {
     console.error('OpenCV processing error:', error);
+    arAnalytics.trackCapture(false); // Add this line
     showStatus('Error processing image. Please try again.');
   } finally {
     cleanup(mats);
