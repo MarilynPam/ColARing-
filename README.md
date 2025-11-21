@@ -114,3 +114,10 @@ The repository contains the following implementations/demos:
     - <a href="https://webarcoloring-simplear.glitch.me/">Web AR coloring of a 3D model</a> and <a href="img/target_3d.jpg">image target 1</a> or <a href="img/target_3d2.jpg">image target 2</a>.
 * A-Frame component:
     - <a href="https://webarcoloring-component.glitch.me/">Example implementation</a> and <a href="img/target_3d.jpg">image target 1</a> or <a href="img/target_3d2.jpg">image target 2</a>.
+
+## Acknowledgments
+
+This project builds on the WebAR Coloring framework created by [Akbar Tus](https://github.com/akbartus).  
+Original source code: [WebAR-Coloring](https://github.com/akbartus/WebAR-Coloring)
+
+We thank the original author for making this work available and for enabling our team to extend it for our HCI project.
