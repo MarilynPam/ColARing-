@@ -356,7 +356,7 @@ class ARAnalytics {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ar_analytics_${this.metrics.sessionId}.csv`;
+    a.download = `ar_analytics_session.csv`;
     
     if (!auto) {
       document.body.appendChild(a);
