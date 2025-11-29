@@ -1,48 +1,195 @@
 <html>
   <head>
-    <title>WebAR Coloring with OpenCV.js: 3D Object and Animation </title>
+    <title>WebAR Coloring Book Study</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
 
-     <style>
-      /* Existing buttons */
-      #capture-btn {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        padding: 15px 30px;
-        background: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 25px;
-        font-size: 16px;
-        cursor: pointer;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      }
-      #capture-btn:hover {
-        background: #45a049;
-      }
-      #capture-btn:disabled {
-        background: #cccccc;
-        cursor: not-allowed;
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
+      body {
+        font-family: 'Arial', sans-serif;
+        overflow: hidden;
+      }
+
+      /* Page containers */
+      .page {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        color: black;
+        z-index: 2000;
+      }
+
+      .page.active {
+        display: flex;
+      }
+
+      /* Start screen */
+      #start-screen {
+        text-align: center;
+      }
+
+      #start-screen h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+
+      #start-screen p {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        max-width: 600px;
+        line-height: 1.6;
+      }
+
+      /* Task screen */
+      #task-screen {
+        text-align: center;
+      }
+
+      #task-screen h2 {
+        font-size: 2em;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      }
+
+      .task-instructions {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 600px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      }
+
+      .task-instructions p {
+        font-size: 1.1em;
+        line-height: 1.8;
+        margin-bottom: 15px;
+      }
+
+      .task-instructions ul {
+        text-align: left;
+        margin: 20px 0;
+        padding-left: 40px;
+      }
+
+      .task-instructions li {
+        margin-bottom: 10px;
+        font-size: 1em;
+        line-height: 1.6;
+      }
+
+      /* Buttons */
+      .nav-button {
+        padding: 15px 40px;
+        font-size: 1.2em;
+        background: #1434a4;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+      } 
+
+      .nav-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      }
+
+      .nav-button:active {
+        transform: translateY(0);
+      }
+
+      /* AR Screen */
+      #ar-screen {
+        background: transparent;
+        padding: 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+      }
+
+      #ar-screen.active {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* A-Frame scene styling */
+      a-scene {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      /* Hide scene when AR screen is not active */
+      #ar-screen:not(.active) a-scene {
+        display: none;
+      }
+
+      /* Status popup */
       #status {
         position: fixed;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 1000;
+        z-index: 3000;
         padding: 10px 20px;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0, 0, 0, 0.7);
         color: white;
         border-radius: 15px;
         font-size: 14px;
         display: none;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        max-width: 80%;
+        text-align: center;
+      }
+
+      /* Export button */
+      #export-analytics {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3000;
+        padding: 10px 20px;
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        font-family: Arial, sans-serif;
+        display: none;
+      }
+
+      #export-analytics.visible {
+        display: block;
+      }
+
+      #export-analytics:hover {
+        background: #1976D2;
       }
 
       /* Study panel styling */
@@ -50,7 +197,7 @@
         position: fixed;
         top: 10px;
         left: 10px;
-        z-index: 1100;
+        z-index: 3000;
         background: rgba(0, 0, 0, 0.7);
         color: #ffffff;
         padding: 8px;
@@ -58,73 +205,355 @@
         font-family: sans-serif;
         font-size: 12px;
         max-width: 220px;
+        display: none;
       }
+
+      #study-panel.visible {
+        display: block;
+      }
+
       #study-panel input,
       #study-panel select {
         font-size: 12px;
       }
+
       #study-panel button {
         font-size: 12px;
         margin-top: 4px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        background: #4CAF50;
+        color: white;
       }
+
+      #study-panel button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+
+      #study-panel button:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+
       #study-status-text {
         margin-top: 4px;
       }
+
       #study-trial-count {
         margin-top: 2px;
         font-size: 11px;
         opacity: 0.8;
       }
+
+      #export-study-csv {
+        background: #2196F3;
+      }
+
+      /* Back button for AR screen */
+      #back-button {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 3000;
+        padding: 10px 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+      }
+
+      #back-button.visible {
+        display: block;
+      }
+
+      #back-button:hover {
+        background: rgba(0, 0, 0, 0.9);
+      }
+
+      /* Next task button for AR screen */
+      #next-task-button {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3000;
+        padding: 12px 30px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        display: none;
+      }
+
+      #next-task-button.visible {
+        display: block;
+      }
+
+      #next-task-button:hover {
+        background: #45a049;
+      }
     </style>
   </head>
   <body>
-    <!--Buttons-->
-    <div id="status"></div>
-    <button id="export-analytics" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 15px; font-size: 14px; cursor: pointer;">Export Analytics</button>
-
-    <!--Study Panel-->
-     <div id="study-panel">
-      <div>
-        Participant:
-        <input id="participantId" type="text" value="P1" style="width:60px;">
-      </div>
-      <div style="margin-top:4px;">
-        Lighting:
-        <select id="lightingCondition">
-          <option value="bright">Bright</option>
-          <option value="dim">Dim</option>
-        </select>
-      </div>
-      <div style="margin-top:4px;">
-        AR Experience:
-        <select id="arExperience">
-          <option value="low">Low</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-      <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap;">
-        <button id="study-start-btn">Start</button>
-        <button id="study-error-btn" disabled>Error</button>
-        <button id="study-end-btn" disabled>End</button>
-      </div>
-      <div id="study-status-text">Idle</div>
-      <div id="study-trial-count">Trials saved: 0</div>
-      <button id="export-study-csv" style="margin-top:4px; width:100%;">Export Study CSV</button>
+    <!-- Start Screen -->
+    <div id="start-screen" class="page active">
+      <h1>WebAR Coloring Book Study</h1>
+      <p>This study explores how augmented reality can enhance the coloring book experience. You'll complete a simple task and we'll track your interaction with the AR features.</p>
+      <button class="nav-button" onclick="goToTask()">Start Study</button>
     </div>
 
-    <a-scene mindar-image="imageTargetSrc: target_3d.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 10; far: 10000; objects: .clickable"></a-camera>
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-entity id="example-3D" gltf-model="raccoon.glb" animation-mixer="clip: *;" class="clickable" position="0 0 0" rotation="0 0 0" scale="0.1 0.1 0.1"></a-entity>
-      </a-entity>
-    </a-scene>    
+    <!-- Task 1 Instructions Screen -->
+    <div id="task1-screen" class="page">
+      <h2>Task 1: Coloring Comparison</h2>
+      <div class="task-instructions">
+        <p><strong>Your Task:</strong></p>
+        <ul>
+          <li>Draw 2 coloring pages of the raccoon character</li>
+          <li>Color one page using <strong>crayons</strong></li>
+          <li>Color the other page using <strong>colored markers</strong></li>
+          <li>Once complete, click "Begin Task 1" and show each page to the camera</li>
+          <li>Observe and note the difference in how the AR system detects and processes each coloring medium</li>
+        </ul>
+        <p style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;">
+          Tip: On the second coloring page, click on the raccoon again to reapply the texture
+        </p>
+      </div>
+      <button class="nav-button" onclick="goToAR(1)">Begin Task 1</button>
+    </div>
+
+    <!-- Task 2 Instructions Screen -->
+    <div id="task2-screen" class="page">
+      <h2>Task 2: Lighting Comparison</h2>
+      <div class="task-instructions">
+        <p><strong>Your Task:</strong></p>
+        <ul>
+          <li>Take one of your colored pages</li>
+          <li>First, show it to the camera in a <strong>well-lit room</strong></li>
+          <li>Note how quickly and accurately the AR detects the image</li>
+          <li>Then, move to a <strong>dimly lit area</strong></li>
+          <li>Show the same page again and observe the detection differences</li>
+          <li>Compare the detection speed, accuracy, and texture quality in both lighting conditions</li>
+        </ul>
+        <p style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;">
+          Tip: Use the study panel to record your observations about lighting conditions!
+        </p>
+      </div>
+      <button class="nav-button" onclick="goToAR(2)">Begin Task 2</button>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completion-screen" class="page">
+      <h2>Study Complete!</h2>
+      <div class="task-instructions">
+        <p style="font-size: 1.3em; margin-bottom: 20px;">Thank you for participating!</p>
+        <p>You've completed all tasks. Your data has been collected throughout the session.</p>
+        <p style="margin-top: 20px;">Please remember to export your analytics and study data before closing the page.</p>
+      </div>
+      <button class="nav-button" onclick="goToStart()">Return to Start</button>
+      <button style="margin-top: 20px;" id="export-analytics">Export Analytics</button>
+
+    </div>
+
+    <!-- AR Application Screen -->
+    <div id="ar-screen" class="page">
+      <!-- Status popup -->
+      <div id="status"></div>
+
+      <!-- Back button -->
+      <button id="back-button" onclick="goBackFromAR()">Back to Instructions</button>
+
+      <!-- Next Task button -->
+      <button id="next-task-button">Next Task →</button>
+
+      <!-- Export Analytics Button -->
+      <button id="export-analytics">Export Analytics</button>
+
+      <!-- Study Panel -->
+      <div id="study-panel">
+        <div>
+          Participant:
+          <input id="participantId" type="text" value="P1" style="width:60px;">
+        </div>
+        <div style="margin-top:4px;">
+          Lighting:
+          <select id="lightingCondition">
+            <option value="bright">Bright</option>
+            <option value="dim">Dim</option>
+          </select>
+        </div>
+        <div style="margin-top:4px;">
+          AR Experience:
+          <select id="arExperience">
+            <option value="low">Low</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div style="margin-top:6px; display:flex; gap:4px; flex-wrap:wrap;">
+          <button id="study-start-btn">Start</button>
+          <button id="study-error-btn" disabled>Error</button>
+          <button id="study-end-btn" disabled>End</button>
+        </div>
+        <div id="study-status-text">Idle</div>
+        <div id="study-trial-count">Trials saved: 0</div>
+        <button id="export-study-csv" style="margin-top:4px; width:100%;">Export Study CSV</button>
+      </div>
+
+      <!-- A-Frame Scene -->
+      <a-scene mindar-image="imageTargetSrc: target_3d.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 10; far: 10000; objects: .clickable"></a-camera>
+        <a-entity mindar-image-target="targetIndex: 0">
+          <a-entity id="example-3D" gltf-model="raccoon.glb" animation-mixer="clip: *;" class="clickable" position="0 0 0" rotation="0 0 0" scale="0.1 0.1 0.1"></a-entity>
+        </a-entity>
+      </a-scene>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
-  <script src="script.js"></script>
-  <script src="analytics.js"></script>
+    <script src="analytics.js"></script>
+    <script src="script.js"></script>
 
-  
+    <!-- Navigation Script -->
+    <script>
+      let currentTask = 0;
 
-    <!-- NEW: Study logging script -->
+      function goToStart() {
+        document.getElementById('start-screen').classList.add('active');
+        document.getElementById('task1-screen').classList.remove('active');
+        document.getElementById('task2-screen').classList.remove('active');
+        document.getElementById('completion-screen').classList.remove('active');
+        document.getElementById('ar-screen').classList.remove('active');
+        
+        // Hide AR screen elements
+        document.getElementById('export-analytics').classList.remove('visible');
+        document.getElementById('study-panel').classList.remove('visible');
+        document.getElementById('back-button').classList.remove('visible');
+        document.getElementById('next-task-button').classList.remove('visible');
+        
+        currentTask = 0;
+      }
+
+      function goToTask() {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('task1-screen').classList.add('active');
+        document.getElementById('task2-screen').classList.remove('active');
+        document.getElementById('completion-screen').classList.remove('active');
+        document.getElementById('ar-screen').classList.remove('active');
+        
+        // Hide AR screen elements
+        document.getElementById('export-analytics').classList.remove('visible');
+        document.getElementById('study-panel').classList.remove('visible');
+        document.getElementById('back-button').classList.remove('visible');
+        document.getElementById('next-task-button').classList.remove('visible');
+      }
+
+      function goToTask2() {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('task1-screen').classList.remove('active');
+        document.getElementById('task2-screen').classList.add('active');
+        document.getElementById('completion-screen').classList.remove('active');
+        document.getElementById('ar-screen').classList.remove('active');
+        
+        // Hide AR screen elements
+        document.getElementById('export-analytics').classList.remove('visible');
+        document.getElementById('study-panel').classList.remove('visible');
+        document.getElementById('back-button').classList.remove('visible');
+        document.getElementById('next-task-button').classList.remove('visible');
+      }
+
+      function goToAR(taskNumber) {
+        currentTask = taskNumber;
+        
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('task1-screen').classList.remove('active');
+        document.getElementById('task2-screen').classList.remove('active');
+        document.getElementById('completion-screen').classList.remove('active');
+        document.getElementById('ar-screen').classList.add('active');
+        
+        // Show AR screen elements
+        document.getElementById('export-analytics').classList.add('visible');
+        document.getElementById('study-panel').classList.add('visible');
+        document.getElementById('back-button').classList.add('visible');
+        
+        // Show next task button only if not on final task
+        const nextTaskBtn = document.getElementById('next-task-button');
+        if (taskNumber === 1) {
+          nextTaskBtn.textContent = 'Next Task';
+          nextTaskBtn.classList.add('visible');
+        } else if (taskNumber === 2) {
+          nextTaskBtn.textContent = 'Complete Study';
+          nextTaskBtn.classList.add('visible');
+        }
+        
+        // Initialize AR app on first visit
+        if (!window.arAppInitialized) {
+          // Force A-Frame scene to initialize
+          const scene = document.querySelector('a-scene');
+          if (scene) {
+            // Trigger resize to force A-Frame to recalculate
+            window.dispatchEvent(new Event('resize'));
+            
+            // Initialize app after scene is ready
+            setTimeout(() => {
+              if (typeof initializeApp === 'function') {
+                initializeApp();
+                window.arAppInitialized = true;
+              }
+            }, 500);
+          }
+        }
+      }
+
+      function goBackFromAR() {
+        if (currentTask === 1) {
+          goToTask();
+        } else if (currentTask === 2) {
+          goToTask2();
+        }
+      }
+
+      function goToCompletion() {
+        document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('task1-screen').classList.remove('active');
+        document.getElementById('task2-screen').classList.remove('active');
+        document.getElementById('ar-screen').classList.remove('active');
+        document.getElementById('completion-screen').classList.add('active');
+        
+        // Show export button on completion screen, hide other AR elements
+        const exportBtns = document.querySelectorAll('#export-analytics');
+        exportBtns.forEach(btn => btn.classList.remove('visible'));
+        // Show the export analytics button in completion screen (inline button, not fixed positioned)
+        if (document.querySelector('#completion-screen #export-analytics')) {
+          document.querySelector('#completion-screen #export-analytics').style.display = 'block';
+        }
+        
+        document.getElementById('study-panel').classList.remove('visible');
+        document.getElementById('back-button').classList.remove('visible');
+        document.getElementById('next-task-button').classList.remove('visible');
+      }
+
+      // Set up next task button click handler
+      document.addEventListener('DOMContentLoaded', function() {
+        const nextTaskBtn = document.getElementById('next-task-button');
+        nextTaskBtn.addEventListener('click', function() {
+          if (currentTask === 1) {
+            goToTask2();
+          } else if (currentTask === 2) {
+            goToCompletion();
+          }
+        });
+      });
+    </script>
+
+    <!-- Study logging script -->
     <script>
       (function () {
         let studyStartTime = null;
@@ -214,7 +643,7 @@
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          setTimeout(() => URL.revokeObjectURL(url), 100);
         });
 
         // Initial state
@@ -223,7 +652,5 @@
         updateTrialCount();
       })();
     </script>
-
-
   </body>
 </html>
